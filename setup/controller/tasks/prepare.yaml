@@ -6,19 +6,19 @@
 
 - name: Create k0s initial controller service
   tags: configurate-k0s-controller
-  when: k0s_controller_service_stat.stat.exists == false and k0s_host_is_initial_master
+  when: k0s_controller_service_stat.stat.exists == false and k0s_host_is_initial_controller
   block:
     - name: Init k0s user config
-      tags: configurate-k0s-master
+      tags: configurate-k0s-controller
       shell: "k0s config create > {{k0s_config_folder}}/k0s.yaml"
 
     - name: Install k0s controller
-      tags: configurate-k0s-master
+      tags: configurate-k0s-controller
       command: "k0s install controller -c {{k0s_config_folder}}/k0s.yaml"
 
 - name: Create k0s controller service
   tags: configurate-k0s-controller
-  when: k0s_controller_service_stat.stat.exists == false and (not k0s_host_is_initial_master)
+  when: k0s_controller_service_stat.stat.exists == false and (not k0s_host_is_initial_controller)
   block:
     - name: Create k0s controller token file
       tags: configurate-k0s-controller
@@ -31,13 +31,13 @@
       command: "k0s install controller --token-file {{k0s_config_folder}}/k0s-token"
 
 - name: Create k0s controller service folder
-  tags: configurate-k0s-master
+  tags: configurate-k0s-controller
   file:
     path: "{{systemd_service_folder}}/k0scontroller.service.d"
     state: directory
 
 - name: Create k0s controller service env config
-  tags: configurate-k0s-master
+  tags: configurate-k0s-controller
   template:
     src: env.conf.j2
     dest: "{{systemd_service_folder}}/k0scontroller.service.d/env.conf"

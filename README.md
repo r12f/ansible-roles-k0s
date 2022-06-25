@@ -26,23 +26,23 @@ git submodule update --init --recursive
 Since k0s require an initial controller to bootstrap, we need to define an extra variable for our initial controller:
 
 ```yaml
-k0s_host_is_initial_master: true
+k0s_host_is_initial_controller: true
 ```
 
 This can be added into our inventory file as below:
 
 ```yaml
-initial-master:
+initial-controller:
   hosts:
   r12f-lab-m0:
     ansible_host: 10.0.0.1
-    k0s_host_is_initial_master: true
+    k0s_host_is_initial_controller: true
 ```
 
-Or using `group_vars`, in this case, our group is initial-master, hence, we can define below in `group_vars/initial-master.yaml` file:
+Or using `group_vars`, in this case, our group is initial-controller, hence, we can define below in `group_vars/initial-controller.yaml` file:
 
 ```yaml
-k0s_host_is_initial_master: true
+k0s_host_is_initial_controller: true
 ```
 
 That's it! All roles are ready to go!
@@ -63,10 +63,10 @@ To create a cluster, we can create a file in your playbooks folder with the foll
 
 ```yaml
 ---
-# Master nodes
+# Controller nodes
 - hosts:
-    - initial-master
-    - masters
+    - initial-controller
+    - controllers
   become: true
   gather_facts: true
   roles:
@@ -89,7 +89,7 @@ To create a cluster, we can create a file in your playbooks folder with the foll
 After the role is defined, we can use the following command to initialize the k0s initial controller.
 
 ```bash
-ansible-playbook playbooks/setup-k0s.yaml --limit initial-master
+ansible-playbook playbooks/setup-k0s.yaml --limit initial-controller
 ```
 
 Once all works are done, it will output the generated tokens on console for initialize other controllers and workers, making them connect to the initial controller and join the cluster.
@@ -110,7 +110,7 @@ And for security reasons, preferrably these 2 values should be added into [ansib
 Now, we can update the rest of the fleet by running:
 
 ```bash
-ansible-playbook playbooks/setup-k0s.yaml --limit masters
+ansible-playbook playbooks/setup-k0s.yaml --limit controllers
 ansible-playbook playbooks/setup-k0s.yaml --limit workers
 ```
 
@@ -142,8 +142,8 @@ Then we can uninstall k0s fom our machines by:
 
 ```yaml
 ansible-playbook playbooks/reset-k0s.yaml --limit workers
-ansible-playbook playbooks/reset-k0s.yaml --limit masters
-ansible-playbook playbooks/reset-k0s.yaml --limit initial-master
+ansible-playbook playbooks/reset-k0s.yaml --limit controllers
+ansible-playbook playbooks/reset-k0s.yaml --limit initial-controller
 ```
 
 ## License

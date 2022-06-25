@@ -1,24 +1,24 @@
 - name: Run initial controller post start task
-  when: k0s_host_is_initial_master
+  when: k0s_host_is_initial_controller
   block:
     - name: Create k0s admin config
-      tags: configurate-k0s-master-post-k0s-start
+      tags: configurate-k0s-controller-post-k0s-start
       file:
         src: "{{k0s_var_lib_folder}}/pki/admin.conf"
         dest: "/home/{{ansible_ssh_user}}/.kube/config"
 
     - name: Create k0s controller join token
-      tags: k0s-master-create-token
+      tags: k0s-controller-create-token
       command: "k0s token create --role=controller"
       register: k0s_controller_join_token_result
 
     - name: Create k0s worker join token
-      tags: k0s-master-create-token
+      tags: k0s-controller-create-token
       command: "k0s token create --role=worker"
       register: k0s_worker_join_token_result
 
     - name: Display k0s join token
-      tags: k0s-master-create-token
+      tags: k0s-controller-create-token
       debug:
         msg:
           - 'Please encrypt the join tokens and update the vars for your nodes, e.g.:'
