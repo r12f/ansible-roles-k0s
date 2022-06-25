@@ -23,6 +23,28 @@ For older version of git, we might also need to run:
 git submodule update --init --recursive
 ```
 
+Since k0s require an initial controller to bootstrap, we need to define an extra variable for our initial controller:
+
+```yaml
+k0s_host_is_initial_master: true
+```
+
+This can be added into our inventory file as below:
+
+```yaml
+initial-master:
+  hosts:
+  r12f-lab-m0:
+    ansible_host: 10.0.0.1
+    k0s_host_is_initial_master: true
+```
+
+Or using `group_vars`, in this case, our group is initial-master, hence, we can define below in `group_vars/initial-master.yaml` file:
+
+```yaml
+k0s_host_is_initial_master: true
+```
+
 That's it! All roles are ready to go!
 
 ## Creating a k0s cluster
@@ -35,20 +57,102 @@ The high level process for creating a k0s cluster is:
 
 Hence, our roles are also defined in this way.
 
-### Step 1: Update the vars for your machines
+### Step 1: Add roles to your playbook
+
+To create a cluster, we can create a file in your playbooks folder with the following 2 roles, say: `setup-k0s.yaml`
 
 ```yaml
-k0s_host_is_initial_master: true
+---
+# Master nodes
+- hosts:
+    - initial-master
+    - masters
+  become: true
+  gather_facts: true
+  roles:
+    - k0s/common
+    - k0s/install
+    - k0s/setup/controller
+
+# Worker nodes
+- hosts: workers
+  become: true
+  gather_facts: true
+  roles:
+    - k0s/common
+    - k0s/install
+    - k0s/setup/worker
 ```
 
-### Step 2: Add roles to your playbook
+### Step 2: Initialize initial controller
 
-### Step 3: Play
+After the role is defined, we can use the following command to initialize the k0s initial controller.
 
-#### Step 3.1: Initialize initial controller
+```bash
+ansible-playbook playbooks/setup-k0s.yaml --limit initial-master
+```
 
-#### Step 3.2: Update tokens
+Once all works are done, it will output the generated tokens on console for initialize other controllers and workers, making them connect to the initial controller and join the cluster.
 
-#### Step 3.3: Update rest machines
+### Step 3: Update tokens
 
-## Reset
+Copy the tokens and add them to our variable files, like below.
+
+```yaml
+k0s_controller_join_token: H4sIA...
+k0s_worker_join_token: H4sIA...
+```
+
+And for security reasons, preferrably these 2 values should be added into [ansible vault](https://docs.ansible.com/ansible/latest/user_guide/vault.html).
+
+### Step 4: Update rest machines
+
+Now, we can update the rest of the fleet by running:
+
+```bash
+ansible-playbook playbooks/setup-k0s.yaml --limit masters
+ansible-playbook playbooks/setup-k0s.yaml --limit workers
+```
+
+If you are using ansible vault, and say the vault file is `secrets.yaml`, then, we can add `-e @secrets.yaml` in the end of the commands above.
+
+You might also need `--ask-vault-pass` or update your `ansible.cfg` for password settings, to know more about ansible vault, please check the link [here](https://docs.ansible.com/ansible/latest/user_guide/vault.html).
+
+## Uninstall / Reset
+
+If we need to uninstall k0s from a node, we can use the reset role.
+
+### Step 1: Add reset roles to your playbook
+
+Same as install, we can create a playbook, say `reset-k0s.yaml`, and add the following role:
+
+```yaml
+---
+- hosts: all
+  become: true
+  gather_facts: true
+  roles:
+    - k0s/common
+    - k0s/reset
+```
+
+### Step 2: Run
+
+Then we can uninstall k0s fom our machines by:
+
+```yaml
+ansible-playbook playbooks/reset-k0s.yaml --limit workers
+ansible-playbook playbooks/reset-k0s.yaml --limit masters
+ansible-playbook playbooks/reset-k0s.yaml --limit initial-master
+```
+
+## License
+
+Apache-2.0: <https://www.apache.org/licenses/LICENSE-2.0>
+
+## Others
+
+If you don't really need ansible integration for your cluster or looking for one-shot solution, feel free to check these alternative solutions:
+
+- [k0sctl](https://github.com/k0sproject/k0sctl): This is a really nice tool for setup a k0s clusters.
+- [k0s-ansible](https://github.com/movd/k0s-ansible): A standard alone playbook that allow you setup your cluster in fully automated way in one shot.
