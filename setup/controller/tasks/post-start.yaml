@@ -1,5 +1,4 @@
 - name: Run initial controller post start task
-  tags: configurate-k0s-master-post-k0s-start
   when: k0s_host_is_initial_master
   block:
     - name: Create k0s admin config
