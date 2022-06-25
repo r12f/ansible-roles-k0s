@@ -1,0 +1,19 @@
+---
+- name: Check k0s worker installed
+  stat: 
+    path: /etc/systemd/system/k0sworker.service
+  register: k0sWorkerServiceStat
+
+- name: Create k0s worker service
+  tags: configurate-k0s-worker
+  when: k0sWorkerServiceStat.stat.exists == false
+  block:
+    - name: Create k0s worker token file
+      tags: configurate-k0s-worker
+      template:
+        src: templates/k0s-token.j2
+        dest: "{{k0s_config_folder}}/k0s-token"
+
+    - name: Install k0s controller
+      tags: configurate-k0s-worker
+      command: "k0s install worker --token-file {{k0s_config_folder}}/k0s-token"

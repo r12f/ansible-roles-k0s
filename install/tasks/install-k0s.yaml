@@ -1,0 +1,51 @@
+---
+- name: Create ~/.kube folder
+  tags: install-k0s
+  file:
+    path: /home/{{ansible_ssh_user}}/.kube
+    state: directory
+    owner: "{{ansible_ssh_user}}"
+    mode: "u=rwx,g=rx,o="
+
+- name: Chown ~/.kube folder
+  tags: install-k0s
+  file:
+    path: /home/{{ansible_ssh_user}}/.kube
+    state: directory
+    owner: "{{ansible_ssh_user}}"
+    group: "{{ansible_ssh_user}}"
+    recurse: yes
+
+- name: Check k0s installed
+  stat: 
+    path: "{{k0s_bin_path}}"
+  register: k0s_bin_stat
+
+- name: Install k0s
+  tags: install-k0s
+  when: k0s_bin_stat.stat.exists == false
+  block:
+    - name: Get k0s version
+      command: curl -sSLf "https://docs.k0sproject.io/stable.txt"
+      register: k0s_version
+
+    - name: Get k0s download url
+      set_fact:
+        k0s_download_url: "https://github.com/k0sproject/k0s/releases/download/{{k0s_version.stdout}}/k0s-{{k0s_version.stdout}}-{{k0sArch}}"
+
+    - name: Download k0s
+      command: curl -L "{{k0s_download_url}}" -o "{{k0s_bin_path}}"
+
+    - name: Set k0s user group
+      file:
+        path: "{{k0s_bin_path}}"
+        owner: root
+        group: root
+        mode: '0755'
+
+- name: Create k0s config folder
+  tags: install-k0s
+  file:
+    path: "{{k0s_config_folder}}"
+    state: directory
+    mode: "u=rwx,g=rx,o="

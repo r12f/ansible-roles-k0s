@@ -1,0 +1,5 @@
+- name: Start k0s worker
+  systemd:
+    name: k0sworker
+    enabled: yes
+    state: restarted

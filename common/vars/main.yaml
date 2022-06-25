@@ -1,0 +1,16 @@
+---
+k0s_supported_archs:
+  x86_64: amd64
+  amd64: amd64
+  armv7l: arm
+  armv8l: arm
+  arm: arm
+  arm64: arm64
+  aarch64: arm64
+
+systemd_service_folder: /etc/systemd/system
+k0s_var_lib_folder: /var/lib/k0s
+k0s_libexec_folder: /usr/libexec/k0s
+
+k0s_bin_path: /usr/local/bin/k0s
+kubectrl_bin_path: /usr/local/bin/kubectl

@@ -1,0 +1,30 @@
+---
+- name: Check kubectl installed
+  stat: 
+    path: "{{kubectrl_bin_path}}"
+  register: kubectl_bin_stat
+
+- name: Download and install kubectl
+  when: kubectl_bin_stat.stat.exists == false
+  block:
+    - name: Get kubectl version
+      tags: install-kubectl
+      command: curl -L -s https://dl.k8s.io/release/stable.txt
+      register: kubectl_version
+
+    - debug:
+        var: kubectl_version
+
+    - name: Reomve existing kubectl in /tmp
+      tags: install-kubectl
+      file:
+        path: /tmp/kubectl
+        state: absent
+
+    - name: Download kubectl to /tmp
+      tags: install-kubectl
+      command: curl -L "https://dl.k8s.io/release/{{kubectl_version.stdout}}/bin/linux/arm64/kubectl" -o /tmp/kubectl
+
+    - name: Install kubectrl from /tmp to system
+      tags: install-kubectl
+      command: 'install -o root -g root -m 0755 /tmp/kubectl "{{kubectrl_bin_path}}"'

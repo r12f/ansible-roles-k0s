@@ -1,0 +1,43 @@
+---
+- name: Stop all k0s services
+  tags: k0s-reset
+  systemd:
+    name: "{{item}}"
+    state: stopped
+    enabled: no
+  failed_when: false
+  with_items:
+    - k0scontroller
+    - k0sworker
+
+- name: Check k0s installed
+  stat: 
+    path: "{{k0s_bin_path}}"
+  register: k0s_bin_stat
+
+- name: K0s reset
+  command: k0s reset
+  when: k0s_bin_stat.stat.exists
+
+- name: Remove all k0s data
+  tags: k0s-reset
+  file:
+    path: "{{item}}"
+    state: absent
+  loop:
+    - "{{systemd_service_folder}}/k0scontroller.service"
+    - "{{systemd_service_folder}}/k0scontroller.service.d"
+    - "{{systemd_service_folder}}/k0sworker.service"
+    - "{{k0s_config_folder}}"
+    - "{{k0s_var_lib_folder}}"
+    - "{{k0s_libexec_folder}}"
+    - "/home/{{ansible_ssh_user}}/.kube/config"
+
+- name: Reload daemon after removing k0s data
+  tags: k0s-reset
+  systemd:
+    daemon_reload: yes
+
+- name: Reboot after k0s reset
+  tags: k0s-reset
+  reboot:

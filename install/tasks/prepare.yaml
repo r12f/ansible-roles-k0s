@@ -1,0 +1,50 @@
+---
+- name: Enable IPv4 forwarding
+  tags: k0s-prepare-install
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: "1"
+    state: present
+    reload: yes
+
+- name: Enable IPv6 forwarding
+  tags: k0s-prepare-install
+  sysctl:
+    name: net.ipv6.conf.all.forwarding
+    value: "1"
+    state: present
+    reload: yes
+  when: ansible_all_ipv6_addresses
+
+- name: Check /boot/firmware/cmdline.txt for boot flags
+  stat: 
+    path: /boot/firmware/cmdline.txt
+  register: boot_firmware_cmdline_exists
+
+- name: Enable cpuset and memory cgroups in /boot/firmware/cmdline.txt
+  tags: k0s-prepare-install
+  when: boot_firmware_cmdline_exists.stat.exists == true
+  block:
+    - name: Get device boot flags
+      tags: k0s-prepare-install
+      shell: cat /boot/firmware/cmdline.txt
+      register: boot_cmdline
+
+    - name: Dump device boot flags
+      debug:
+        var: boot_cmdline
+
+    - name: Enable cpuset and memory cgroups in /boot/firmware/cmdline.txt
+      tags: k0s-prepare-install
+      command: sed -i '1s/^/{{item}} /' /boot/firmware/cmdline.txt
+      when: "item|string not in boot_cmdline.stdout"
+      loop:
+      - "cgroup_memory=1"
+      - "cgroup_enable=memory"
+      - "cgroup_enable=cpuset"
+      register: update_boot_flags_result
+
+    - name: Reboot after updating boot flags
+      tags: k0s-prepare-install
+      when: update_boot_flags_result.changed
+      reboot:

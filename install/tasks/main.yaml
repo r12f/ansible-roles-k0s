@@ -1,0 +1,4 @@
+---
+- import_tasks: prepare.yaml
+- import_tasks: install-kubectl.yaml
+- import_tasks: install-k0s.yaml

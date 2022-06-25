@@ -1,0 +1,15 @@
+---
+- name: Start k0s controller
+  tags: start-k0s-controller
+  systemd:
+    name: k0scontroller
+    enabled: yes
+    state: restarted
+    daemon_reload: yes
+
+- name: Wait until k0s controller started with 180s timeout
+  tags: start-k0s-controller
+  wait_for:
+    host: localhost
+    port: 6443
+    timeout: 180

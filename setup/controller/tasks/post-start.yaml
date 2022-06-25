@@ -1,0 +1,29 @@
+- name: Run initial controller post start task
+  tags: configurate-k0s-master-post-k0s-start
+  when: k0s_host_is_initial_master
+  block:
+    - name: Create k0s admin config
+      tags: configurate-k0s-master-post-k0s-start
+      file:
+        src: "{{k0s_var_lib_folder}}/pki/admin.conf"
+        dest: "/home/{{ansible_ssh_user}}/.kube/config"
+
+    - name: Create k0s controller join token
+      tags: k0s-master-create-token
+      command: "k0s token create --role=controller"
+      register: k0s_controller_join_token_result
+
+    - name: Create k0s worker join token
+      tags: k0s-master-create-token
+      command: "k0s token create --role=worker"
+      register: k0s_worker_join_token_result
+
+    - name: Display k0s join token
+      tags: k0s-master-create-token
+      debug:
+        msg:
+          - 'Please encrypt the join tokens and update the vars for your nodes, e.g.:'
+          - '- For your controller nodes, update <playbook>/group_vars/controllers.yaml with: k0s_controller_join_token: {{k0s_controller_join_token_result.stdout}}'
+          - '- For your worker nodes, update <playbook>/group_vars/workers.yaml with: k0s_worker_join_token: {{k0s_worker_join_token_result.stdout}}'
+          - ''
+          - 'After this, we can start initialize all controller/worker nodes or add more at any time in future.'
