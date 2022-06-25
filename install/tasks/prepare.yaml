@@ -16,6 +16,15 @@
     reload: yes
   when: ansible_all_ipv6_addresses
 
+- name: Install required packages
+  tags: k0s-prepare-install
+  package:
+    name:
+      - curl
+      - iptables
+      - inetutils
+    state: present
+
 - name: Check /boot/firmware/cmdline.txt for boot flags
   stat: 
     path: /boot/firmware/cmdline.txt
@@ -34,7 +43,7 @@
       debug:
         var: boot_cmdline
 
-    - name: Enable cpuset and memory cgroups in /boot/firmware/cmdline.txt
+    - name: Update cpuset and memory cgroups in /boot/firmware/cmdline.txt
       tags: k0s-prepare-install
       command: sed -i '1s/^/{{item}} /' /boot/firmware/cmdline.txt
       when: "item|string not in boot_cmdline.stdout"
