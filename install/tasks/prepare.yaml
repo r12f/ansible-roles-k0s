@@ -22,7 +22,6 @@
     name:
       - curl
       - iptables
-      - inetutils
     state: present
 
 - name: Check /boot/firmware/cmdline.txt for boot flags
