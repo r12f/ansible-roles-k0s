@@ -14,6 +14,6 @@
         src: templates/k0s-token.j2
         dest: "{{k0s_config_folder}}/k0s-token"
 
-    - name: Install k0s controller
+    - name: Install k0s worker
       tags: configurate-k0s-worker
       command: "k0s install worker --token-file {{k0s_config_folder}}/k0s-token"
