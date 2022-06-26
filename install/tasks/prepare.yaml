@@ -9,12 +9,12 @@
 
 - name: Enable IPv6 forwarding
   tags: k0s-prepare-install
+  when: ansible_all_ipv6_addresses
   sysctl:
     name: net.ipv6.conf.all.forwarding
     value: "1"
     state: present
     reload: yes
-  when: ansible_all_ipv6_addresses
 
 - name: Install required packages
   tags: k0s-prepare-install
@@ -45,8 +45,8 @@
 
     - name: Update cpuset and memory cgroups in /boot/firmware/cmdline.txt
       tags: k0s-prepare-install
-      command: sed -i '1s/^/{{item}} /' /boot/firmware/cmdline.txt
       when: "item|string not in boot_cmdline.stdout"
+      command: sed -i '1s/^/{{item}} /' /boot/firmware/cmdline.txt
       loop:
       - "cgroup_memory=1"
       - "cgroup_enable=memory"

@@ -16,8 +16,8 @@
   register: k0s_bin_stat
 
 - name: K0s reset
-  command: k0s reset
   when: k0s_bin_stat.stat.exists
+  command: k0s reset
 
 - name: Remove all k0s data
   tags: k0s-reset

@@ -1,8 +1,8 @@
 ---
 - name: Check k0s supported arch
+  when: "ansible_architecture not in k0s_supported_archs"
   fail:
     msg: "K0s is not supported for architecture: {{ansible_architecture}}"
-  when: "ansible_architecture not in k0s_supported_archs"
 
 - name: Set k0s supported arch
   set_fact:
