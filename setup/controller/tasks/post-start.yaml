@@ -3,9 +3,13 @@
   block:
     - name: Create k0s admin config
       tags: configurate-k0s-controller-post-k0s-start
-      file:
+      copy:
         src: "{{k0s_var_lib_folder}}/pki/admin.conf"
         dest: "/home/{{ansible_ssh_user}}/.kube/config"
+        remote_src: true
+        owner: "{{ansible_ssh_user}}"
+        group: "{{ansible_ssh_user}}"
+        mode: 0644
 
     - name: Create k0s controller join token
       tags: k0s-controller-create-token
