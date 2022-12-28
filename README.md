@@ -32,14 +32,14 @@ k0s_host_is_initial_controller: true
 This can be added into our inventory file as below:
 
 ```yaml
-initial-controller:
+initial_controller:
   hosts:
   r12f-lab-m0:
     ansible_host: 10.0.0.1
     k0s_host_is_initial_controller: true
 ```
 
-Or using `group_vars`, in this case, our group is initial-controller, hence, we can define below in `group_vars/initial-controller.yaml` file:
+Or using `group_vars`, in this case, our group is initial_controller, hence, we can define below in `group_vars/initial_controller.yaml` file:
 
 ```yaml
 k0s_host_is_initial_controller: true
@@ -65,7 +65,7 @@ To create a cluster, we can create a file in your playbooks folder with the foll
 ---
 # Controller nodes
 - hosts:
-    - initial-controller
+    - initial_controller
     - controllers
   become: true
   gather_facts: true
@@ -89,7 +89,7 @@ To create a cluster, we can create a file in your playbooks folder with the foll
 After the role is defined, we can use the following command to initialize the k0s initial controller.
 
 ```bash
-ansible-playbook playbooks/setup-k0s.yaml --limit initial-controller
+ansible-playbook playbooks/setup-k0s.yaml --limit initial_controller
 ```
 
 Once all works are done, it will output the generated tokens on console for initialize other controllers and workers, making them connect to the initial controller and join the cluster.
@@ -143,7 +143,7 @@ Then we can uninstall k0s fom our machines by:
 ```yaml
 ansible-playbook playbooks/reset-k0s.yaml --limit workers
 ansible-playbook playbooks/reset-k0s.yaml --limit controllers
-ansible-playbook playbooks/reset-k0s.yaml --limit initial-controller
+ansible-playbook playbooks/reset-k0s.yaml --limit initial_controller
 ```
 
 ## License
